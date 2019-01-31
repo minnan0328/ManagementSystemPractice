@@ -38,6 +38,7 @@ router.get('/admin/login', function (req, res, next) {
 
 /* 登入請求 */
 router.post('/admin/login', function (req, res) {
+  console.log(req.body)
   if (req.body.account == adminAccount && req.body.password == adminPassword) {
     res.cookie('authorized', req.body.account);
     res.redirect('/admin');
@@ -171,7 +172,7 @@ router.delete('api/v1/users/AllDelete', function (req, res) {
     })
   });
 
-  queryDeleteUserss.then((result) => {
+  queryDeleteUsers.then((result) => {
     res.send(result);
   }, function (err) {
     console.log(err);
