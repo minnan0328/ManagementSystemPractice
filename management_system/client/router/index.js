@@ -1,4 +1,5 @@
 import Login from './../components/Login'
+import Home from './../components/Home'
 import AdminLogin from './../components/Admin/Login'
 import Admin from './../components/Admin/Admin'
 import AddAdmin from './../components/Admin/addAdmin'
@@ -8,11 +9,15 @@ import ChangeIndex from './../components/Admin/ChangeIndex'
 export const routes = [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/home'
   },
   {
     path: '/login',
     component: Login
+  },
+  {
+    path: '/home',
+    component: Home
   },
   {
     path: '/admin/login',

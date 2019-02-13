@@ -46,6 +46,7 @@ export default {
       }, 500)
     },
     checkValidation () {
+      // console.log(this.title,this.announce,this.img)
       this.$store.dispatch('postIndexInfo', {
         title: this.title,
         announce: this.announce,
@@ -73,15 +74,15 @@ export default {
         const reader = new FileReader()
         reader.readAsDataURL(filePromises)
         reader.onload = function () { // 圖片轉base64完成後返回reader物
-          console.log(reader.result)
+          // console.log(reader.result)
           resolve(reader.result)
         }
         reader.onerror = reject
       })
       ImgToBase64.then((result) => {
-        var base64Data = result.replace(/^data:image\/\w+;base64,/, "");
-        this.img = base64Data
-        console.log(this.img)
+        // var base64Data = result.replace(/^data:image\/\w+;base64,/, '')
+        this.img = result
+        // console.log(this.img)
         // console.log(result)
       })
 

@@ -2,6 +2,7 @@ var express = require('express')
 var router = express.Router()
 var mysql = require('mysql')
 var fs = require('fs')
+var path = require('path')
 var moment = require('moment')
 // var uploadModel = require('./../model/upload-model') // 上传model
 // var d = moment().format()
@@ -11,7 +12,8 @@ var day = moment().format('DD')
 var hours = moment().format('HH')
 var minutes = moment().format('mm')
 var seconds = moment().format('ss')
-var datatime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
+var dataTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
+var imgsDataTime = year + month + day + hours + minutes + seconds
 
 var connection = mysql.createConnection({
   host: 'localhost',
@@ -21,17 +23,27 @@ var connection = mysql.createConnection({
 })
 
 /* 取得首頁資料 */
-router.get('/v1/index', function (req, res) {
-  var queryadmin = new Promise((resolve, reject) => {
+router.post('/v1/index', function (req, res) {
+  var queryindex = new Promise((resolve, reject) => {
     connection.query('select * from indexInfo', (err, rows, fields) => {
       if (err) reject(err)
       else resolve(rows)
     })
   })
-  queryadmin.then((result) => {
+  queryindex.then((result) => {
     var str = JSON.stringify(result)
     var data = JSON.parse(str)
-    res.send(data)
+    var url = data[data.length - 1].img
+    var imgUrl = fs.readFileSync(url, {
+      encoding: 'base64'
+    })
+    var indexInfo = {
+      img: imgUrl,
+      title: data[data.length - 1].title,
+      announce: data[data.length - 1].announce,
+      revisetime: data[data.length - 1].revisetime
+    }
+    res.send(indexInfo)
   }, function (err) {
     console.log(err)
   })
@@ -39,41 +51,70 @@ router.get('/v1/index', function (req, res) {
 /* 修改首頁內容 */
 router.post('/v1/index', function (req, res) {
   var img = req.body.img
-  // console.log(img)
-  // console.log(req)
-  // uploadModel.uploadPhoto(req, 'img', function (err, fields, uploadPath) {
-  //   console.log('uploadModel')
-  //   console.log('err', err)
-  //   console.log('uploadPath', uploadPath)
-  // })
-  const filename = `./../static/img/${datatime}.png`
-  fs.readFileSync(filename, img, 'base64', function (err) {
-    if (err) return
-    console.log('图片保存成功')
+  let base64 = img.replace(/^data:image\/\w+;base64,/, '')
+  let dataBuffer = new Buffer(base64, 'base64')
+  let imgPath = `./server/static/img/${imgsDataTime}.png`
+  fs.writeFileSync(imgPath, dataBuffer, (err) => {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log('保存圖片成功')
+    }
   })
-  const imgs = fs.readFileSync(filename)
-  console.log(imgs)
-  res.send('OK')
+  // var imgUrl = fs.readFileSync(imgPath, {
+  //   encoding: 'utf8'
+  // })
+  // var imgUrl = path.relative('', `server/static/img/${imgsDataTime}.png`)
+  // console.log(imgUrl)
+  var payload = {
+    title: req.body.title,
+    announce: req.body.announce,
+    img: imgPath,
+    revisetime: dataTime
+  }
 
-  // var payload = {
-  //   title: req.body.title,
-  //   announce: req.body.announce,
-  //   img: req.body.img,
-  //   revisetime: datatime
-  // }
   // console.log(payload)
-  // var queryadmin = new Promise((resolve, reject) => {
-  //   connection.query(`INSERT INTO administrant SET ?`, payload, (err, rows, fields) => {
-  //     if (err) reject(err)
-  //     else resolve(rows)
-  //   })
-  // })
-  // queryadmin.then((result) => {
-  //   res.send(result)
-  // }, function (err) {
-  //   console.log(err)
-  // })
+  var queryaindex = new Promise((resolve, reject) => {
+    connection.query(`INSERT INTO indexInfo SET ?`, payload, (err, rows, fields) => {
+      if (err) reject(err)
+      else resolve(rows)
+    })
+  })
+  queryaindex.then((result) => {
+    var data = {
+      success: result.protocol41,
+      message: result.message
+    }
+    res.send(data)
+  }, function (err) {
+    console.log(err)
+  })
 })
+// /* 修改首頁內容 */
+// router.post('/v1/index', function (req, res) {
+//   uploadModel.uploadPhoto(req, 'img', function (err, fields, uploadPath) {
+//     console.log(err)
+//     console.log(uploadPath)
+//   })
+//   var payload = {
+//     title: req.body.title,
+//     announce: req.body.announce,
+//     img: req.body.imgs,
+//     revisetime: dataTime
+//   }
+//   console.log(payload)
+//   // var queryadmin = new Promise((resolve, reject) => {
+//   //   connection.query(`INSERT INTO administrant SET ?`, payload, (err, rows, fields) => {
+//   //     if (err) reject(err)
+//   //     else resolve(rows)
+//   //   })
+//   // })
+//   // queryadmin.then((result) => {
+//   //   res.send(result)
+//   // }, function (err) {
+//   //   console.log(err)
+//   // })
+// })
 
 // /* get minnan db id */
 // router.get('/test/:id', function (req, res) {
@@ -143,15 +184,6 @@ function stringToBoolean (string) {
   }
 }
 
-var d = new Date()
-var yaer = d.getFullYear()
-var month = d.getMonth() + 1
-var day = d.getDate()
-var hours = d.getHours()
-var minutes = d.getMinutes()
-var seconds = d.getSeconds()
-var datetime = yaer + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
-
 /* get minnan users db 註冊會員 */
 router.post('/api/v1/users', function (req, res) {
   var paylad = {
@@ -159,7 +191,7 @@ router.post('/api/v1/users', function (req, res) {
     password: req.body.password,
     birthday: req.body.birthday,
     sex: stringToBoolean(req.body.sex),
-    createtime: datetime
+    createtime: dataTime
   }
 
   var queryUsers = new Promise((resolve, reject) => {

@@ -7,7 +7,6 @@ var logger = require('morgan')
 // var bodyParser = require('body-parser')
 var Admin = require('./api/admin')
 var userRouter = require('./api/db_user')
-// var indexInfo = require('./api/db_index')
 var app = express()
 
 app.all('*', function (req, res, next) {
@@ -16,35 +15,44 @@ app.all('*', function (req, res, next) {
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
 
   if (req.method === 'OPTIONS') {
-    res.send(200)
+    res.status(200).send('OK')
   } else {
     next()
   }
 })
+
 // app.use(bodyParser.json())
 // app.use(bodyParser.urlencoded({
-//   extended: false
+//   extended: true,
+//   limit: '50mb'
 // }))
 app.use(logger('dev'))
-app.use(express.json())
+app.use(express.json({
+  limit: '50mb'
+}))
+
 app.use(
   express.urlencoded({
-    extended: true,
-    limit: '50mb'
+    extended: false
+    // limit: '50mb',
+    // parameterLimit: 50000
   })
 )
-app.use(cookieParser())
-
 app.use('/admin', Admin)
 app.use('/api', userRouter)
-// app.use('/', indexInfo)
-// // 訪問靜態資源
+app.set('dist', path.join(__dirname, '../dist'))
+app.engine('html', require('ejs').renderFile)
+app.set('dist engine', 'html')
+
+// 訪問靜態資源
 app.use(express.static(path.resolve(__dirname, '../dist')))
 // 訪問單頁
 app.get('*', function (req, res) {
   var html = fs.readFileSync(path.resolve(__dirname, '../dist/index.html'), 'utf-8')
   res.send(html)
 })
+
+app.use(cookieParser())
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -60,11 +68,11 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500)
-  // res.json({
-  //   message: err.message,
-  //   error: err
-  // })
-  res.render('error')
+  res.json({
+    message: err.message,
+    error: err
+  })
+  // res.render('error')
 })
 
 // 監聽
@@ -73,3 +81,44 @@ app.listen(8081, function () {
 })
 
 module.exports = app
+
+// app.set('views', path.join(__dirname, '../dist'))
+// app.engine('html', require('ejs').renderFile)
+// app.set('view engine', 'html')
+
+// app.use(logger('dev'))
+// app.use(express.json())
+// app.use(
+//   express.urlencoded({
+//     extended: true,
+//     limit: '50mb'
+//   })
+// )
+// app.use(cookieParser())
+// app.use(express.static(path.join(__dirname, 'public')))
+
+// app.use('/admin', Admin)
+// app.use('/api', userRouter)
+
+// // catch 404 and forward to error handler
+// app.use(function (req, res, next) {
+//   next(createError(404))
+// })
+
+// // error handler
+// app.use(function (err, req, res, next) {
+
+//   // set locals, only providing error in development
+//   res.locals.message = err.message
+//   res.locals.error = req.app.get('env') === 'development' ? err : {}
+
+//   // render the error page
+//   res.status(err.status || 500)
+//   res.render('error')
+// })
+// // 監聽
+// app.listen(8081, function () {
+//   console.log('success listen...8081')
+// })
+
+// module.exports = app

@@ -2,7 +2,8 @@ import axios from 'axios'
 
 export default {
   state: {
-    admin: {}
+    admin: {},
+    indexData: {}
   },
   actions: {
     getAdmin ({ commit, dispatch }, payload) {
@@ -21,14 +22,14 @@ export default {
       axios.post('http://localhost:8081/admin/administrant', {
         account: payload.account,
         password: payload.password
-      }).then(function (response) {
+      }).then((response) => {
         console.log(response)
         if (response.data.success === true) {
           payload.loginCallback()
         } else {
           payload.FailHandler()
         }
-      }).catch(function (error) {
+      }).catch((error) => {
         console.log(error)
       })
     },
@@ -37,13 +38,13 @@ export default {
         name: payload.name,
         account: payload.account,
         password: payload.password
-      }).then(function (response) {
+      }).then((response) => {
         if (response.data.success === true) {
           payload.successCallback(response.data.message)
         } else {
           payload.FailHandler()
         }
-      }).catch(function (error) {
+      }).catch((error) => {
         console.log(error)
       })
     },
@@ -52,7 +53,7 @@ export default {
         name: payload.name,
         account: payload.account,
         password: payload.password
-      }).then(function (response) {
+      }).then((response) => {
         if (response.data.success === true) {
           payload.successCallback(response.data.message)
         } else {
@@ -63,17 +64,19 @@ export default {
       })
     },
     postIndexInfo ({ commit }, payload) {
+      // console.log(payload)
       axios.post('http://localhost:8081/api/v1/index', {
         title: payload.title,
         announce: payload.announce,
         img: payload.img
-      }).then(function (response) {
+      }).then((response) => {
+        console.log(response)
         // if (response.data.success === true) {
         //   payload.successCallback(response.data.message)
         // } else {
         //   payload.FailHandler(response.data.message)
         // }
-      }).catch(function (error) {
+      }).catch((error) => {
         console.log(error)
       })
     }
