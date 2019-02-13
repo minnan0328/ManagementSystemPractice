@@ -2,7 +2,6 @@ var express = require('express')
 var router = express.Router()
 var mysql = require('mysql')
 var fs = require('fs')
-var path = require('path')
 var moment = require('moment')
 // var uploadModel = require('./../model/upload-model') // 上传model
 // var d = moment().format()
@@ -49,7 +48,7 @@ router.post('/v1/index', function (req, res) {
   })
 })
 /* 修改首頁內容 */
-router.post('/v1/index', function (req, res) {
+router.post('/v1/index/add', function (req, res) {
   var img = req.body.img
   let base64 = img.replace(/^data:image\/\w+;base64,/, '')
   let dataBuffer = new Buffer(base64, 'base64')
@@ -61,11 +60,6 @@ router.post('/v1/index', function (req, res) {
       console.log('保存圖片成功')
     }
   })
-  // var imgUrl = fs.readFileSync(imgPath, {
-  //   encoding: 'utf8'
-  // })
-  // var imgUrl = path.relative('', `server/static/img/${imgsDataTime}.png`)
-  // console.log(imgUrl)
   var payload = {
     title: req.body.title,
     announce: req.body.announce,
@@ -73,7 +67,6 @@ router.post('/v1/index', function (req, res) {
     revisetime: dataTime
   }
 
-  // console.log(payload)
   var queryaindex = new Promise((resolve, reject) => {
     connection.query(`INSERT INTO indexInfo SET ?`, payload, (err, rows, fields) => {
       if (err) reject(err)
@@ -115,6 +108,22 @@ router.post('/v1/index', function (req, res) {
 //   //   console.log(err)
 //   // })
 // })
+
+/* 刪除全部會員資料 */
+router.delete('/v1/index', function (req, res) {
+  var queryDeleteUsers = new Promise((resolve, reject) => {
+    connection.query('DELETE FROM indexInfo', (err, rows, fields) => {
+      if (err) reject(err)
+      else resolve(rows)
+    })
+  })
+
+  queryDeleteUsers.then((result) => {
+    res.send(result)
+  }, function (err) {
+    console.log(err)
+  })
+})
 
 // /* get minnan db id */
 // router.get('/test/:id', function (req, res) {

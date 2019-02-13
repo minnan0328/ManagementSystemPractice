@@ -64,8 +64,8 @@ export default {
       })
     },
     postIndexInfo ({ commit }, payload) {
-      // console.log(payload)
-      axios.post('http://localhost:8081/api/v1/index', {
+      console.log(payload)
+      axios.post('http://localhost:8081/api/v1/index/add', {
         title: payload.title,
         announce: payload.announce,
         img: payload.img

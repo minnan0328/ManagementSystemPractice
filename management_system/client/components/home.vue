@@ -2,9 +2,7 @@
   <div>
     <h1>{{title}}</h1>
     <h3>{{announce}}</h3>
-    <!-- {{img}} -->
     <img :src="img">
-    <img src="./../../server/static/img/2019211173638.png">
   </div>
 </template>
 
