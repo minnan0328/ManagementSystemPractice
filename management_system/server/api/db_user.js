@@ -126,13 +126,7 @@ router.delete('/v1/index', function (req, res) {
 })
 
 // /* get minnan db id */
-// router.get('/test/:id', function (req, res) {
-//   var connection = mysql.createConnection({
-//     host: 'localhost',
-//     user: 'root',
-//     password: '',
-//     database: 'minnan'
-//   });
+// router.get('/users/:id', function (req, res) {
 //   var id = req.params.id;
 //   console.log(id);
 
