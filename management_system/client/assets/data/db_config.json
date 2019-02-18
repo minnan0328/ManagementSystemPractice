@@ -1,0 +1,17 @@
+{
+  "api":{
+    "url": "http://localhost:8081",
+    "admin":{
+      "sigions": "/admin/administrant",
+      "getAdmin": "/admin/administrant",
+      "addAdmin": "/admin/administrant/add",
+      "updatePassword": "/admin/administrant/updatepassword"
+    },
+    "user" :{
+      "addIndex": "/api/v1/index/add",
+      "getIndex": "/api/v1/index",
+      "getAllIndexInfo": "/api/v1/index/all",
+      "deleteIndex": "/api/v1/index/delete"
+    }
+  }
+}

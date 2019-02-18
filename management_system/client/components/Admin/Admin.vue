@@ -2,7 +2,7 @@
 <div>
   <div>歡迎</div>
   <div>
-    <button @click="router('/admin/changeDate')">更改密碼</button>
+    <button @click="router('/admin/changePassword')">更改密碼</button>
     <button @click="router('/admin/login')">登出</button>
   </div>
   <div>

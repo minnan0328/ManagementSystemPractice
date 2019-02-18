@@ -1,5 +1,5 @@
 import axios from 'axios'
-
+import DBconfig from './../../data/db_config.json'
 export default {
   state: {
     admin: {},
@@ -7,7 +7,9 @@ export default {
   },
   actions: {
     getAdmin ({ commit, dispatch }, payload) {
-      axios.get('http://localhost:8081/admin/administrant')
+      // 'http://localhost:8081/admin/administrant'
+      var url = `${DBconfig.api.url}${DBconfig.api.admin.getAdmin}`
+      axios.get(url)
         .then((res) => {
           var data = {
             name: res.data[0].name,
@@ -19,11 +21,12 @@ export default {
         })
     },
     postAdmin ({ commit }, payload) {
-      axios.post('http://localhost:8081/admin/administrant', {
+      // 'http://localhost:8081/admin/administrant'
+      var url = `${DBconfig.api.url}${DBconfig.api.admin.sigions}`
+      axios.post(url, {
         account: payload.account,
         password: payload.password
       }).then((response) => {
-        console.log(response)
         if (response.data.success === true) {
           payload.loginCallback()
         } else {
@@ -34,7 +37,9 @@ export default {
       })
     },
     postAddAdmin ({ commit }, payload) {
-      axios.post('http://localhost:8081/admin/administrant/add', {
+      // 'http://localhost:8081/admin/administrant/add'
+      var url = `${DBconfig.api.url}${DBconfig.api.admin.addAdmin}`
+      axios.post(url, {
         name: payload.name,
         account: payload.account,
         password: payload.password
@@ -49,7 +54,9 @@ export default {
       })
     },
     postChangePassword ({ commit }, payload) {
-      axios.post('http://localhost:8081/admin/administrant/updatepassword', {
+      // 'http://localhost:8081/admin/administrant/updatepassword'
+      var url = `${DBconfig.api.url}${DBconfig.api.admin.updatePassword}`
+      axios.post(url, {
         name: payload.name,
         account: payload.account,
         password: payload.password
@@ -63,27 +70,66 @@ export default {
         console.log(error)
       })
     },
-    postIndexInfo ({ commit }, payload) {
-      console.log(payload)
-      axios.post('http://localhost:8081/api/v1/index/add', {
+    postAddIndexInfo ({ commit }, payload) {
+      // 'http://localhost:8081/api/v1/index/add'
+      var url = `${DBconfig.api.url}${DBconfig.api.user.addIndex}`
+      axios.post(url, {
         title: payload.title,
         announce: payload.announce,
         img: payload.img
       }).then((response) => {
-        console.log(response)
-        // if (response.data.success === true) {
-        //   payload.successCallback(response.data.message)
-        // } else {
-        //   payload.FailHandler(response.data.message)
-        // }
+        var message = '新增成功'
+        if (response.data.success === true) {
+          payload.successCallback(message)
+        } else {
+          payload.FailHandler(response.data.message)
+        }
       }).catch((error) => {
         console.log(error)
       })
+    },
+    getAllIndexInfo ({ commit }, payload) {
+      // 'http://localhost:8081/api/v1/index/all'
+      var url = `${DBconfig.api.url}${DBconfig.api.user.getAllIndexInfo}`
+      axios.post(url)
+        .then((response) => {
+          console.log(response.data)
+          response.data.forEach(item => {
+            item.img = `data:image/png;base64,${item.img}`
+          })
+          commit('setIndex', response.data)
+        }).catch((error) => {
+          console.log(error)
+        })
+    },
+    deleteIndexInfo ({commit}, payload) {
+      console.log(payload.id)
+      // `http://localhost:8081/api/v1/index:${id}`
+      var id = payload.id
+      var url = `${DBconfig.api.url}${DBconfig.api.user.deleteIndex}:${id}`
+      console.log(url)
+      axios.post(url, {
+        id: id
+      })
+        .then((response) => {
+          console.log(response)
+          var message = '刪除成功'
+          if (response.data.success === true) {
+            payload.successCallback(message)
+          } else {
+            payload.FailHandler(response.data.message)
+          }
+        }).catch((error) => {
+          console.log(error)
+        })
     }
   },
   mutations: {
     setAdmin: (state, payload) => {
       state.admin = payload
+    },
+    setIndex: (state, payload) => {
+      state.indexData = payload
     }
   }
 }

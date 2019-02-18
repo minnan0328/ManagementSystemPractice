@@ -3,8 +3,9 @@ import Vuex from 'vuex'
 import axios from 'axios'
 import usersDate from './usersData'
 import adminDate from './adminData'
-// import FileReader from 'fileReader'
+import DBconfig from './../../data/db_config.json'
 
+console.log(DBconfig)
 Vue.use(Vuex)
 const store = new Vuex.Store({
   modules: {
@@ -16,19 +17,13 @@ const store = new Vuex.Store({
   },
   actions: {
     getIndexData ({ commit }) {
-      axios.post('http://localhost:8081/api/v1/index')
+      var url = `${DBconfig.api.url}${DBconfig.api.user.getIndex}`
+      // 'http://localhost:8081/api/v1/index'
+      axios.post(url)
         .then((res) => {
           var data = res.data
           console.log(data)
           var objectURL = `data:image/png;base64,${data.img}`
-          // var binary = fixBinary(atob(data.img))
-          // var z = new Blob([binary], {
-          //   type: 'image/png'
-          // })
-          // var objectURL = URL.createObjectURL(z)
-          // console.log(binary)
-          // console.log(z)
-          console.log(objectURL)
           var payload = {
             img: objectURL,
             title: data.title,
@@ -43,7 +38,6 @@ const store = new Vuex.Store({
   },
   mutations: {
     setIndex: (state, payload) => {
-      console.log(payload)
       state.index = payload
     }
   }

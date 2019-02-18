@@ -1,6 +1,9 @@
 <template>
 <div>
-  <div>首頁資訊修改</div>
+  <div v-if="errorMessage.length > 0" class="error">
+    {{errorMessage}}
+</div>
+  <h3>首頁資訊新增</h3>
   <div id="AdminLogin" method="post">
     <label>標題：</label><input type="text" v-model="title">
     <label>公告：</label><input type="text" v-model="announce">
@@ -14,26 +17,53 @@
     <button @click="checkValidation()">確定</button>
     <button @click="cancel()">取消</button>
   </div>
-
+  <hr>
+  <div>
+    <h3>首頁資訊總覽</h3>
+    <table border=1>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Announce</th>
+      <th>Img</th>
+      <th>ReviseTime</th>
+      <th>修改</th>
+      <th>選擇</th>
+      <th>刪除</th>
+      <tr v-for="item in this.indexDate">
+        <td>{{item.index_id}}</td>
+        <td>{{item.title}}</td>
+        <td>{{item.announce}}</td>
+        <td><img :src="item.img"></td>
+        <td>{{item.revisetime}}</td>
+        <td><button >修改</button></td>
+        <td><button>選擇</button></td>
+        <td><button @click="deleteInfo(item.index_id)">刪除</button></td>
+      </tr>
+    </table>
+  </div>
 </div>
 </template>
 
 <script>
-// import { mapState } from 'vuex'
-// import { uploadImgToBase64 } from './../../assets/js/utils/utils.js'
+import {mapState} from 'vuex'
 export default {
-
   data () {
     return {
       title: '',
       announce: '',
       imgBroadcastList: [],
-      img: ''
+      img: '',
+      errorMessage: ''
     }
   },
   mounted () {
-    // this.$store.dispatch('getAdmin')
+    this.$store.dispatch('getAllIndexInfo')
   },
+  computed: mapState({
+    indexDate: state => {
+      return state.adminDate.indexData
+    }
+  }),
   methods: {
     router (routers) {
       setTimeout(() => {
@@ -42,18 +72,53 @@ export default {
     },
     cancel () {
       setTimeout(() => {
-        this.$router.push('/admin/login')
+        this.$router.push('/admin')
       }, 500)
     },
     checkValidation () {
-      // console.log(this.title,this.announce,this.img)
-      this.$store.dispatch('postIndexInfo', {
+      if (this.isEmpty(this.title) || this.isEmpty(this.announce) || this.isEmpty(this.img)) {
+        this.setErrorMessage('請輸入修改資訊')
+        this.removeErrorMessage()
+      } else {
+        this.postIndexInfo()
+      }
+    },
+    isEmpty (value) {
+      return value === undefined || value === null || value === ''
+    },
+    postIndexInfo () {
+      this.$store.dispatch('postAddIndexInfo', {
         title: this.title,
         announce: this.announce,
-        img: this.img
+        img: this.img,
+        FailHandler: this.FailHandler,
+        successCallback: this.successCallback
       })
     },
-
+    successCallback (message) {
+      this.setErrorMessage(message)
+      this.removeErrorMessage()
+      this.$store.dispatch('getAllIndexInfo')
+    },
+    FailHandler (message) {
+      this.setErrorMessage(message)
+      this.removeErrorMessage()
+    },
+    removeErrorMessage () {
+      setTimeout(() => {
+        this.setErrorMessage('')
+      }, 2000)
+    },
+    setErrorMessage: function (value) {
+      this.errorMessage = value
+    },
+    deleteInfo (id) {
+      this.$store.dispatch('deleteIndexInfo', {
+        id: id,
+        FailHandler: this.FailHandler,
+        successCallback: this.successCallback
+      })
+    },
     imgBroadcastChange (file) {
       // this.imgBroadcastList.push(file)
       this.submitDialogData(file.target.files[0])

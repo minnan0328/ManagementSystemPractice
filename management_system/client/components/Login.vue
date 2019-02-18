@@ -10,7 +10,7 @@ export default {
     return {}
   },
   mounted () {
-    this.$store.dispatch('getUsers')
+    // this.$store.dispatch('getConfigInfo')
   },
   computed: mapState({
     usersDate: state => {

@@ -5,7 +5,7 @@
         <h3>後台管理系統</h3>
     </div>
     </header>
-    <div id="login">登入後台</div>
+    <div id="login">更改後台密碼</div>
     <div v-if="errorMessage.length > 0" class="error">
       {{errorMessage}}
     </div>
