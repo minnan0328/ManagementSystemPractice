@@ -109,7 +109,8 @@ export default {
       var url = `${DBconfig.api.url}${DBconfig.api.user.deleteIndex}:${id}`
       console.log(url)
       axios.post(url, {
-        id: id
+        id: id,
+        time: payload.time
       })
         .then((response) => {
           console.log(response)

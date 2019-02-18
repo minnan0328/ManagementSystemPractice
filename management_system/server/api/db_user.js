@@ -2,7 +2,7 @@ var express = require('express')
 var router = express.Router()
 var mysql = require('mysql')
 var fs = require('fs')
-// var moment = require('moment')
+var moment = require('moment')
 // var year = moment().format('YYYY')
 // var month = moment().format('M')
 // var day = moment().format('DD')
@@ -67,7 +67,7 @@ router.post('/v1/index/all', function (req, res) {
 })
 /* 新增首頁內容 */
 router.post('/v1/index/add', function (req, res) {
-  var moment = require('moment')
+
   var year = moment().format('YYYY')
   var month = moment().format('M')
   var day = moment().format('DD')
@@ -114,6 +114,10 @@ router.post('/v1/index/add', function (req, res) {
 /* 根據ID刪除首頁資料 */
 router.post('/v1/index/delete:id', function (req, res) {
   var id = req.body.id
+  var time = req.body.time
+  var times = moment(time).format('YYYYMDDHHmmss')
+  var path = `./server/static/img/${times}.png`
+  fs.unlinkSync(path)
   var queryDeleteUsers = new Promise((resolve, reject) => {
     connection.query(`DELETE FROM indexInfo where index_id = ${id}`, (err, rows, fields) => {
       if (err) reject(err)

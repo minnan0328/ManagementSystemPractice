@@ -37,7 +37,7 @@
         <td>{{item.revisetime}}</td>
         <td><button >修改</button></td>
         <td><button>選擇</button></td>
-        <td><button @click="deleteInfo(item.index_id)">刪除</button></td>
+        <td><button @click="deleteInfo(item)">刪除</button></td>
       </tr>
     </table>
   </div>
@@ -112,9 +112,10 @@ export default {
     setErrorMessage: function (value) {
       this.errorMessage = value
     },
-    deleteInfo (id) {
+    deleteInfo (item) {
       this.$store.dispatch('deleteIndexInfo', {
-        id: id,
+        id: item.index_id,
+        time: item.revisetime,
         FailHandler: this.FailHandler,
         successCallback: this.successCallback
       })
