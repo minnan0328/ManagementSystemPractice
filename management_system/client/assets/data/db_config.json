@@ -11,7 +11,9 @@
       "addIndex": "/api/v1/index/add",
       "getIndex": "/api/v1/index",
       "getAllIndexInfo": "/api/v1/index/all",
-      "deleteIndex": "/api/v1/index/delete"
+      "deleteIndex": "/api/v1/index/delete",
+      "updateIndex": "/api/v1/index/update",
+      "selectIndex": "/api/v1/index/update/select"
     }
   }
 }

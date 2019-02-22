@@ -3,13 +3,19 @@ var router = express.Router()
 var mysql = require('mysql')
 var fs = require('fs')
 var moment = require('moment')
-// var year = moment().format('YYYY')
-// var month = moment().format('M')
-// var day = moment().format('DD')
-// var hours = moment().format('HH')
-// var minutes = moment().format('mm')
-// var seconds = moment().format('ss')
-// var dataTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
+var dataTime = ''
+var imgsDataTime = ''
+
+function momentInfo () {
+  var year = moment().format('YYYY')
+  var month = moment().format('M')
+  var day = moment().format('DD')
+  var hours = moment().format('HH')
+  var minutes = moment().format('mm')
+  var seconds = moment().format('ss')
+  dataTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
+  imgsDataTime = year + month + day + hours + minutes + seconds
+}
 
 var connection = mysql.createConnection({
   host: 'localhost',
@@ -21,7 +27,7 @@ var connection = mysql.createConnection({
 /* 取得首頁最後一筆新增資料 */
 router.post('/v1/index', function (req, res) {
   var queryindex = new Promise((resolve, reject) => {
-    connection.query('select * from indexInfo', (err, rows, fields) => {
+    connection.query(`select * from indexInfo`, (err, rows, fields) => {
       if (err) reject(err)
       else resolve(rows)
     })
@@ -29,15 +35,20 @@ router.post('/v1/index', function (req, res) {
   queryindex.then((result) => {
     var str = JSON.stringify(result)
     var data = JSON.parse(str)
-    var url = data[data.length - 1].img
+    var payload = data.filter(item => {
+      return item.show === 1
+    })
+    console.log(payload)
+    var url = payload[0].img
     var imgUrl = fs.readFileSync(url, {
       encoding: 'base64'
     })
+    var times = moment(payload[0].revisetime).format('YYYY-M-DD HH:mm:ss')
     var indexInfo = {
       img: imgUrl,
-      title: data[data.length - 1].title,
-      announce: data[data.length - 1].announce,
-      revisetime: data[data.length - 1].revisetime
+      title: payload[0].title,
+      announce: payload[0].announce,
+      revisetime: times
     }
     res.send(indexInfo)
   }, function (err) {
@@ -56,6 +67,7 @@ router.post('/v1/index/all', function (req, res) {
     var str = JSON.stringify(result)
     var data = JSON.parse(str)
     data.forEach(item => {
+      item.revisetime = moment(item.revisetime).format('YYYY-M-DD HH:mm:ss')
       item.img = fs.readFileSync(item.img, {
         encoding: 'base64'
       })
@@ -67,15 +79,7 @@ router.post('/v1/index/all', function (req, res) {
 })
 /* 新增首頁內容 */
 router.post('/v1/index/add', function (req, res) {
-
-  var year = moment().format('YYYY')
-  var month = moment().format('M')
-  var day = moment().format('DD')
-  var hours = moment().format('HH')
-  var minutes = moment().format('mm')
-  var seconds = moment().format('ss')
-  var dataTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
-  var imgsDataTime = year + month + day + hours + minutes + seconds
+  momentInfo()
   var img = req.body.img
   let base64 = img.replace(/^data:image\/\w+;base64,/, '')
   let dataBuffer = new Buffer(base64, 'base64')
@@ -87,16 +91,75 @@ router.post('/v1/index/add', function (req, res) {
       console.log('保存圖片成功')
     }
   })
-
+  var payload = {
+    title: req.body.title,
+    announce: req.body.announce,
+    img: imgPath,
+    revisetime: dataTime,
+    show: false
+  }
+  var queryaindex = new Promise((resolve, reject) => {
+    connection.query(`INSERT INTO indexInfo SET ?`, payload, (err, rows, fields) => {
+      if (err) reject(err)
+      else resolve(rows)
+    })
+  })
+  queryaindex.then((result) => {
+    var data = {
+      success: result.protocol41,
+      message: result.message
+    }
+    res.send(data)
+  }, function (err) {
+    console.log(err)
+  })
+})
+/* 更新首頁內容 */
+router.post('/v1/index/update:id', function (req, res) {
+  var id = req.body.id
+  momentInfo()
+  var img = req.body.img
+  let base64 = img.replace(/^data:image\/\w+;base64,/, '')
+  let dataBuffer = new Buffer(base64, 'base64')
+  let imgPath = `./server/static/img/${imgsDataTime}.png`
+  fs.writeFileSync(imgPath, dataBuffer, (err) => {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log('保存圖片成功')
+    }
+  })
   var payload = {
     title: req.body.title,
     announce: req.body.announce,
     img: imgPath,
     revisetime: dataTime
   }
-  console.log(imgPath)
   var queryaindex = new Promise((resolve, reject) => {
-    connection.query(`INSERT INTO indexInfo SET ?`, payload, (err, rows, fields) => {
+    // and img = ${payload.img} and revisetime = ${payload.revisetime}
+    connection.query(`update indexInfo SET title = "${payload.title}",announce = "${payload.announce}",img = "${payload.img}",revisetime = "${payload.revisetime}" where index_id = ${id}`, (err, rows, fields) => {
+      if (err) reject(err)
+      else resolve(rows)
+    })
+  })
+  queryaindex.then((result) => {
+    var data = {
+      success: result.protocol41,
+      message: result.message
+    }
+    res.send(data)
+  }, function (err) {
+    console.log(err)
+  })
+})
+/* 選擇首頁內容 */
+router.post('/v1/index/update/select:id', function (req, res) {
+  var id = req.body.id
+  var payload = {
+    show: false
+  }
+  var queryaindex = new Promise((resolve, reject) => {
+    connection.query(`update indexInfo SET show = ${payload.show} where index_id = ${id}`, (err, rows, fields) => {
       if (err) reject(err)
       else resolve(rows)
     })
@@ -155,27 +218,6 @@ router.post('/v1/index', function (req, res) {
     console.log(err)
   })
 })
-
-/* 取得該ID資料 */
-// /* get minnan db id */
-// router.get('/users/:id', function (req, res) {
-//   var id = req.params.id;
-//   console.log(id);
-
-//   /* es6 */
-//   var queryUserByCity = new Promise((resolve, reject) => {
-//     connection.query('select * from user where id =' + id, (err, rows, fields) => {
-//       if (err) reject(err);
-//       else resolve(rows);
-//     })
-//   });
-
-//   queryUserByCity.then((result) => {
-//     res.send(result);
-//   }, function (err) {
-//     console.log(err);
-//   });
-// })
 
 // /* get minnan db */
 router.get('/v1/users', function (req, res) {

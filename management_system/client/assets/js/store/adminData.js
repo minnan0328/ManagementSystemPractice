@@ -102,12 +102,49 @@ export default {
           console.log(error)
         })
     },
+    updateIndexInfo ({commit}, payload) {
+      // http://localhost:8081/api/v1/index/update:id
+      var id = payload.id
+      var url = `${DBconfig.api.url}${DBconfig.api.user.updateIndex}:${id}`
+      axios.post(url, {
+        id: id,
+        title: payload.title,
+        announce: payload.announce,
+        img: payload.img
+      })
+        .then((response) => {
+          var message = '更新成功'
+          if (response.data.success === true) {
+            payload.successCallback(message)
+          } else {
+            payload.FailHandler(response.data.message)
+          }
+        }).catch((error) => {
+          console.log(error)
+        })
+    },
+    selectIndexInfo ({ commit }, payload) {
+      // http://localhost:8081/api/v1/index/update/select:id
+      var id = payload.id
+      var url = `${DBconfig.api.url}${DBconfig.api.user.selectIndex}:${id}`
+      axios.post(url, {
+        id: id
+      })
+        .then((response) => {
+          var message = '更新成功'
+          if (response.data.success === true) {
+            payload.successCallback(message)
+          } else {
+            payload.FailHandler(response.data.message)
+          }
+        }).catch((error) => {
+          console.log(error)
+        })
+    },
     deleteIndexInfo ({commit}, payload) {
-      console.log(payload.id)
       // `http://localhost:8081/api/v1/index:${id}`
       var id = payload.id
       var url = `${DBconfig.api.url}${DBconfig.api.user.deleteIndex}:${id}`
-      console.log(url)
       axios.post(url, {
         id: id,
         time: payload.time
