@@ -24,30 +24,26 @@ var connection = mysql.createConnection({
   database: 'minnan'
 })
 
-/* 取得首頁最後一筆新增資料 */
+/* 取得首頁其中一筆為true之資料 */
 router.post('/v1/index', function (req, res) {
-  var queryindex = new Promise((resolve, reject) => {
-    connection.query(`select * from indexInfo`, (err, rows, fields) => {
+  var queryisShow = new Promise((resolve, reject) => {
+    connection.query(`select * from indexInfo where shows = ${true}`, (err, rows, fields) => {
       if (err) reject(err)
       else resolve(rows)
     })
   })
-  queryindex.then((result) => {
+  queryisShow.then((result) => {
     var str = JSON.stringify(result)
     var data = JSON.parse(str)
-    var payload = data.filter(item => {
-      return item.show === 1
-    })
-    console.log(payload)
-    var url = payload[0].img
+    var url = data[0].img
     var imgUrl = fs.readFileSync(url, {
       encoding: 'base64'
     })
-    var times = moment(payload[0].revisetime).format('YYYY-M-DD HH:mm:ss')
+    var times = moment(data[0].revisetime).format('YYYY-M-DD HH:mm:ss')
     var indexInfo = {
       img: imgUrl,
-      title: payload[0].title,
-      announce: payload[0].announce,
+      title: data[0].title,
+      announce: data[0].announce,
       revisetime: times
     }
     res.send(indexInfo)
@@ -57,13 +53,13 @@ router.post('/v1/index', function (req, res) {
 })
 /* 取得首頁全部新增資料 */
 router.post('/v1/index/all', function (req, res) {
-  var queryindex = new Promise((resolve, reject) => {
+  var queryGetAllIndex = new Promise((resolve, reject) => {
     connection.query('select * from indexInfo', (err, rows, fields) => {
       if (err) reject(err)
       else resolve(rows)
     })
   })
-  queryindex.then((result) => {
+  queryGetAllIndex.then((result) => {
     var str = JSON.stringify(result)
     var data = JSON.parse(str)
     data.forEach(item => {
@@ -81,6 +77,7 @@ router.post('/v1/index/all', function (req, res) {
 router.post('/v1/index/add', function (req, res) {
   momentInfo()
   var img = req.body.img
+  console.log(req.body.isShows)
   let base64 = img.replace(/^data:image\/\w+;base64,/, '')
   let dataBuffer = new Buffer(base64, 'base64')
   let imgPath = `./server/static/img/${imgsDataTime}.png`
@@ -96,15 +93,21 @@ router.post('/v1/index/add', function (req, res) {
     announce: req.body.announce,
     img: imgPath,
     revisetime: dataTime,
-    show: false
+    shows: req.body.isShows
   }
-  var queryaindex = new Promise((resolve, reject) => {
+  if(payload.shows === true) {
+    connection.query(`update indexInfo SET shows = ${false}`, (err, rows, fields) => {
+      console.log(err)
+      console.log(rows)
+    })
+  }
+  var queryAddIndex = new Promise((resolve, reject) => {
     connection.query(`INSERT INTO indexInfo SET ?`, payload, (err, rows, fields) => {
       if (err) reject(err)
       else resolve(rows)
     })
   })
-  queryaindex.then((result) => {
+  queryAddIndex.then((result) => {
     var data = {
       success: result.protocol41,
       message: result.message
@@ -135,14 +138,13 @@ router.post('/v1/index/update:id', function (req, res) {
     img: imgPath,
     revisetime: dataTime
   }
-  var queryaindex = new Promise((resolve, reject) => {
-    // and img = ${payload.img} and revisetime = ${payload.revisetime}
+  var queryUpdateIndex = new Promise((resolve, reject) => {
     connection.query(`update indexInfo SET title = "${payload.title}",announce = "${payload.announce}",img = "${payload.img}",revisetime = "${payload.revisetime}" where index_id = ${id}`, (err, rows, fields) => {
       if (err) reject(err)
       else resolve(rows)
     })
   })
-  queryaindex.then((result) => {
+  queryUpdateIndex.then((result) => {
     var data = {
       success: result.protocol41,
       message: result.message
@@ -155,16 +157,22 @@ router.post('/v1/index/update:id', function (req, res) {
 /* 選擇首頁內容 */
 router.post('/v1/index/update/select:id', function (req, res) {
   var id = req.body.id
-  var payload = {
-    show: false
-  }
-  var queryaindex = new Promise((resolve, reject) => {
-    connection.query(`update indexInfo SET show = ${payload.show} where index_id = ${id}`, (err, rows, fields) => {
+  var shows = req.body.shows
+
+  var querySelectIndex = new Promise((resolve, reject) => {
+    connection.query(`UPDATE indexInfo SET shows = ${false} WHERE index_id != ${id}`, (err, rows, fields) => {
       if (err) reject(err)
       else resolve(rows)
     })
   })
-  queryaindex.then((result) => {
+  querySelectIndex.then((result) => {
+    // var str = JSON.stringify(result)
+    // var data = JSON.parse(str)
+
+    connection.query(`UPDATE indexInfo SET shows = ${shows} WHERE index_id = ${id}`, (err, rows, fields) => {
+      console.log(err)
+      console.log(rows)
+    })
     var data = {
       success: result.protocol41,
       message: result.message
@@ -199,8 +207,12 @@ router.post('/v1/index/delete:id', function (req, res) {
   })
 })
 
+
+/* --------------------------------------------------------------------------- */
+
+
 /* 刪除全部會員資料 */
-router.post('/v1/index', function (req, res) {
+router.delete('/v1/index', function (req, res) {
   var queryDeleteUsers = new Promise((resolve, reject) => {
     connection.query('DELETE FROM indexInfo', (err, rows, fields) => {
       if (err) reject(err)
@@ -263,14 +275,7 @@ function stringToBoolean (string) {
 
 /* get minnan users db 註冊會員 */
 router.post('/api/v1/users', function (req, res) {
-  var moment = require('moment')
-  var year = moment().format('YYYY')
-  var month = moment().format('M')
-  var day = moment().format('DD')
-  var hours = moment().format('HH')
-  var minutes = moment().format('mm')
-  var seconds = moment().format('ss')
-  var dataTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
+  momentInfo()
   var paylad = {
     username: req.body.username,
     password: req.body.password,

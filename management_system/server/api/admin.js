@@ -88,6 +88,7 @@ router.post('/administrant/updatepassword', function (req, res) {
   })
   queryadmin.then((result) => {
     var data = {}
+    console.log(result.length)
     if (result.length === 1) {
       data = {
         success: false,

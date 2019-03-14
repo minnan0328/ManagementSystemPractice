@@ -76,7 +76,8 @@ export default {
       axios.post(url, {
         title: payload.title,
         announce: payload.announce,
-        img: payload.img
+        img: payload.img,
+        isShows: payload.isShows
       }).then((response) => {
         var message = '新增成功'
         if (response.data.success === true) {
@@ -128,7 +129,8 @@ export default {
       var id = payload.id
       var url = `${DBconfig.api.url}${DBconfig.api.user.selectIndex}:${id}`
       axios.post(url, {
-        id: id
+        id: id,
+        shows: true
       })
         .then((response) => {
           var message = '更新成功'

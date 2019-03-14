@@ -12,6 +12,14 @@
     @change="imgBroadcastChange"
     accept="image/jpg,image/png,image/jpeg"
     action="" />
+    <from>
+      <select v-model="selectshow">
+      <label>是否使用</label>
+      <option>請選擇</option>
+      　<option :value="true">是</option>
+      　<option :value="false">否</option>
+      </select>
+    </from>
     <button @click="checkValidation()">確定</button>
     <button @click="cancel()">取消</button>
   </div>
@@ -36,7 +44,8 @@
         <td>{{item.announce}}</td>
         <td><img :src="item.img"></td>
         <td>{{item.revisetime}}</td>
-        <td>{{item.show}}</td>
+        <td v-if="item.shows === 1">true</td>
+        <td v-else>false</td>
         <td><button @click="modifyIndexInfo(item)">修改</button></td>
         <td><button @click="selectIndexInfo(item)">選擇</button></td>
         <td><button @click="deleteIndexInfo(item)">刪除</button></td>
@@ -86,7 +95,8 @@ export default {
       originalAnnounce: '',
       originalImg: '',
       originalboolean: null,
-      isModifyCard: false
+      isModifyCard: false,
+      selectshow: false
     }
   },
   mounted () {
@@ -115,10 +125,13 @@ export default {
       return value === undefined || value === null || value === ''
     },
     postIndexInfo () {
+      // var shows = this.selectshow
+      // console.log(shows)
       this.$store.dispatch('postAddIndexInfo', {
         title: this.title,
         announce: this.announce,
         img: this.img,
+        isShows: this.selectshow,
         FailHandler: this.FailHandler,
         successCallback: this.successCallback
       })
@@ -127,7 +140,7 @@ export default {
       this.setErrorMessage(message)
       this.removeErrorMessage()
       this.$store.dispatch('getAllIndexInfo')
-      if(this.isModifyCard === true) {
+      if (this.isModifyCard === true) {
         this.modifyCancel()
       }
     },
@@ -149,7 +162,7 @@ export default {
       this.originalTitle = item.title
       this.originalAnnounce = item.announce
       this.originalImg = item.img
-      this.originalboolean = item.show
+      this.originalboolean = item.shows
       this.isModifyCard = true
     },
     checkModifyValidation () {
